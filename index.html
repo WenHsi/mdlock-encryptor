@@ -7,17 +7,11 @@
   <meta name="description" content="MdLock Encryptor：AES-256-GCM 加密 Markdown，上傳 GitHub Gist，產生加密分享連結，純前端無後端。" />
   <meta name="author" content="wenhsi" />
   <link rel="canonical" href="https://wenhsi.github.io/mdlock-encryptor/" />
-  <!-- Apple touch icons -->
-  <link rel="apple-touch-icon" sizes="180x180"
-    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAACSElEQVR42u3Xy3HDMBBEQWAT4EH5h8gDIpAzcIkyP8C4OwFVka9Gy94etG2vdyPOGHt/6re7gEkKvIuYpLi7kEkKuwuZpLC7kEkKu8TMDM5qqAuZpLUuMZO01iVmkqIuMZMUdYmZpKhLzCRFXWImKeoSM0lRl5hJiro8IpKUdSZppUvMJEXt5CD75LDOrLzSFprchbbOrL7SFprMhbbOJKy0hSb3hoaIoJ0bpJwdFhonBwgabtDdz1hoEDQIGgSNoEHQIGgQNAgaQYOgQdAgaBA0ggZBg6BB0CBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gQNAgaBI2gQdAgaBA0CBpBg6BB0CBoEDSCBkGDoEHQIGgEDYIGQYOgQdAIGgQNggZBg6ARNAgaBA2CBkEjaBA0CBoEDYJG0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6BB0AgaBA2CBkGDoBE0CBoEDYIGQSNoEDQIGgQNgkbQIGgQNAgaQYOgQdAgaBA0goaEoMfYu8dAgjH2bqFxcoCg4a6g3dEk3M8WGicHLBG0s4PVzw0LTfbJYaVZeZ0tNPkfhVaaVdfZQpO/0FaaVdf514UWNavF7OTgf5wcVpoV1/mjhRY1q8T88ckhalaI+dANLWpmj/nwR6GomTnmw0GLmplj/ipoUTNrzF8HLWpmjLm11k6Jctteb6+BJ0P+80Jba2aL+bSFttbMMoaXLauweeJf/fJTQdjceZ7eevuKW8RXe/RjTuACPtsPTui0K6jEprwAAAAASUVORK5CYII=" />
-  <link rel="apple-touch-icon" sizes="152x152"
-    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJgAAACYCAYAAAAYwiAhAAAB20lEQVR42u3XwU0rQRBFUVclMAvnH+IsOgJ7ixBGyNOvhOCcAP6XxlevmroNOY7748avsdZZE/9PCYpkcCUqkrGVsEiGVsIiGVqLi+Rv3eIi+ZuXsEiezBYXyTVrcZGMrMVFMrIWF8nI2iciqa0XyRVrcZGMrMVFMjJvMObeYNaL3StmwZhZMOtFYsUsGHNvMIgE5jySOpMWDCcSgcGXyvsLC4bAQGAIDIGBwBAYAgOBITAEBgJDYCAwBIbAQGAIDIGBwBAYAgOBITAQGAJDYCAwBIbAQGAIDIGBwBAYAgOBITAQGAJDYCAwBIbAQGAIDIGBwBAYCAyBITAQGAJDYCAwBIbAQGAIDIGBwBAYCAyBITAQGAJDYCAwBIbAQGAIDASGwBAYCAyBITAQGAJDYCAwBIbAfAIEhsBAYAgMgYHAEBgCA4EhMAQGAkNg8DGwtc7yGUhY6ywLhhOJwOB1YN5hJN5fFgwnkj8SmDPJ7vNowZg9kVaMnetlwZh/5Fsxdq3XywUTGTvi+vZEioyrcXmDMf8Gs2LsWq8fLZjIuNJG7/qHENelN5jIeKeFt6I5jvvDZxbW1gWzZuLa/lekyLj6W2+JxMkUVjQwoQlrJDCxiWosMMH9z6A+ewKhxpP1TqhrBgAAAABJRU5ErkJggg==" />
-  <link rel="apple-touch-icon" sizes="120x120"
-    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAABaUlEQVR42u3XsXHDMBREQXw0wED9l8gAFci5Z2yLMu0BDvsKYMCdI8Bqf9BxPJ5NlxvjrLufWUCzwQtsNnSBzYYusNnQHe56XbHocLORO9xs5A43G7nDzUbucLORO9xs5O61ZNetN3vFFrzLgq03c8UWvMOCrTd3xRa80y1agLVY5fy1YAEWYAEWYAEWYMACLMACLMACLMCABViABViABViABRiwAAuwAAuwAAswYAEWYAEWYAEWYMACLMACLMACLMACDFiABViABViABRiwAAuwAAuwAAswYAEWYAEWYAEWYAEGLMACLMACLMACDFiABViA9Z/AY5zlNWQ2xlkW7BMtwJob2Dmcef5a8E6faCvOW68F73bJsuKs9Vrwjr9JVpyz3i8XDDkD99tPNOT1cX88gyGvjfvSJQvyurgv36Ihr4l76TcJ8nq4rbX2FtpxPJ5e89ywvwIGPT/sLcCg54W9FRj4PKCf+wAHz3u3vmCdIgAAAABJRU5ErkJggg==" />
-  <link rel="icon" type="image/png"
-    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZUlEQVR42u3XIRLAIAxEUZILIHr/IyJygtbSTMCxmB9X9d8MNWstXe/P2w5exLD525XxquHKeNVydTwj7EZ8+Q8AAAAAAAAAAAAAAADgCiBvNeVFDPNqMKrivydQIuaW76azYp5/kTQjDwtrvlMAAAAASUVORK5CYII=" />
-  <link rel="shortcut icon" type="image/png"
-    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZUlEQVR42u3XIRLAIAxEUZILIHr/IyJygtbSTMCxmB9X9d8MNWstXe/P2w5exLD525XxquHKeNVydTwj7EZ8+Q8AAAAAAAAAAAAAAADgCiBvNeVFDPNqMKrivydQIuaW76azYp5/kTQjDwtrvlMAAAAASUVORK5CYII=" />
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#0f0f13" media="(prefers-color-scheme: dark)" />
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
@@ -27,7 +21,10 @@
   <meta property="og:title" content="MdLock Encryptor" />
   <meta property="og:description" content="AES-256-GCM 加密 Markdown，上傳 GitHub Gist，產生加密分享連結，純前端無後端。" />
   <meta property="og:locale" content="zh_TW" />
-  <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'><rect width='1200' height='630' fill='%230f0f13'/><text x='50%25' y='46%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='%23e2e2ec' font-family='system-ui'>🔐 MdLock Encryptor</text><text x='50%25' y='65%25' dominant-baseline='middle' text-anchor='middle' font-size='36' fill='%236a6a80' font-family='system-ui'>AES-256-GCM 加密 × GitHub Gist 儲存，純前端無後端。</text></svg>" />
+  <meta property="og:image" content="https://wenhsi.github.io/mdlock-encryptor/assets/og-thumbnail.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="https://wenhsi.github.io/mdlock-encryptor/assets/og-thumbnail.png" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="MdLock Encryptor" />
   <meta name="twitter:description" content="AES-256-GCM 加密 Markdown，上傳 GitHub Gist，產生加密分享連結。" />
