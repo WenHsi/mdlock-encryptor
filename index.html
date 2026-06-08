@@ -185,8 +185,12 @@ textarea#mdInput:focus { border-color: #6366f1; }
     <button class="btn btn-primary" id="setup-btn" onclick="doSetup()">儲存設定</button>
     <div class="err" id="setup-err"></div>
     <div class="hint-box">
-      Token 只需要 <code>gist</code> 權限。<br>
-      GitHub → Settings → Developer settings → Personal access tokens
+      ⚠️ 要用 <strong style="color:#e2e8f0;">Classic token</strong>，不是 Fine-grained token。<br><br>
+      1. 前往 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:#818cf8;">github.com/settings/tokens/new</a><br>
+      2. <strong style="color:#e2e8f0;">Note</strong>：填任意名稱，例如 <code>mdlock</code><br>
+      3. <strong style="color:#e2e8f0;">Expiration</strong>：自行決定<br>
+      4. <strong style="color:#e2e8f0;">Select scopes</strong>：只勾 <code>gist</code>，其他全不勾<br>
+      5. 按 <strong style="color:#e2e8f0;">Generate token</strong>，複製 <code>ghp_</code> 開頭的字串
     </div>
   </div>
 </div>
@@ -213,7 +217,7 @@ textarea#mdInput:focus { border-color: #6366f1; }
   <div class="topbar">
     <span class="topbar-label" style="color:#4ade80;">🔓 已解鎖</span>
     <span class="topbar-label" style="margin-left:.5rem;">🌐 Viewer 網址</span>
-    <input type="text" id="viewerUrl" placeholder="https://你的名字.github.io/md-viewer/" />
+    <input type="text" id="viewerUrl" placeholder="https://wenhsi.github.io/mdlock-viewer/" />
     <span class="topbar-hint">
       還沒設定？<a href="#" onclick="showSetupModal();return false;">查看說明</a>
       &nbsp;|&nbsp;
@@ -244,6 +248,12 @@ textarea#mdInput:focus { border-color: #6366f1; }
     </div>
 
     <div class="bottom-panel">
+      <div style="margin-bottom:.875rem;">
+        <label style="display:block;font-size:.75rem;color:#64748b;font-weight:600;margin-bottom:.4rem;">文件標題（用於 Gist 管理，不會加密）</label>
+        <input type="text" id="docTitle" placeholder="例如：給小明的合約條款"
+          style="width:100%;padding:.72rem .9rem;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:.9rem;outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'" />
+      </div>
       <div class="pw-row">
         <div class="pw-field">
           <label>文件密碼</label>
@@ -335,7 +345,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('lock-pw').focus();
   }
   // Restore viewer URL
-  document.getElementById('viewerUrl').value = localStorage.getItem('viewer_url') || '';
+  const DEFAULT_VIEWER = 'https://wenhsi.github.io/mdlock-viewer/';
+  document.getElementById('viewerUrl').value = localStorage.getItem('viewer_url') || DEFAULT_VIEWER;
   document.getElementById('viewerUrl').addEventListener('input', () =>
     localStorage.setItem('viewer_url', document.getElementById('viewerUrl').value)
   );
@@ -441,8 +452,8 @@ function validate() {
 // ─── Gist upload ─────────────────────────────────────────────────────────────
 async function generateGist() {
   const v = validate(); if (!v) return;
-  const viewerUrl = document.getElementById('viewerUrl').value.trim().replace(/\/?$/, '/');
-  if (!viewerUrl || viewerUrl === '/') { setStatus('❌ 請填入 Viewer 網址', '#f87171'); return; }
+  const DEFAULT_VIEWER = 'https://wenhsi.github.io/mdlock-viewer/';
+  const viewerUrl = (document.getElementById('viewerUrl').value.trim() || DEFAULT_VIEWER).replace(/\/?$/, '/');
 
   const btn = document.getElementById('gistBtn');
   btn.disabled = true; btn.textContent = '🔄 加密並上傳中...';
@@ -454,7 +465,7 @@ async function generateGist() {
       method: 'POST',
       headers: { 'Authorization': `token ${unlockedToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        description: 'Encrypted Markdown document',
+        description: document.getElementById('docTitle').value.trim() || 'Encrypted Markdown document',
         public: false,
         files: { 'encrypted.txt': { content: encrypted } }
       })
