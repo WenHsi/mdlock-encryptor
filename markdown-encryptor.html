@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐 Markdown 加密工具</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+input, textarea, button { font-family: inherit; }
+
+/* ── Shared card layout ── */
+.gate {
+  min-height: 100vh; display: flex;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.card {
+  background: #1e293b; border: 1px solid #334155; border-radius: 16px;
+  padding: 2.5rem; max-width: 440px; width: 100%; text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,.5);
+}
+.card-icon { font-size: 3rem; margin-bottom: 1rem; }
+.card h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: .375rem; }
+.card p { color: #64748b; font-size: .875rem; margin-bottom: 1.75rem; line-height: 1.6; }
+.field { text-align: left; margin-bottom: .875rem; }
+.field label { display: block; font-size: .75rem; color: #64748b; font-weight: 600; margin-bottom: .4rem; }
+.inp-wrap { position: relative; }
+.inp-wrap input {
+  width: 100%; padding: .78rem 2.5rem .78rem .9rem;
+  background: #0f172a; border: 1px solid #334155; border-radius: 9px;
+  color: #e2e8f0; font-size: .95rem; outline: none; transition: border-color .2s;
+}
+.inp-wrap input:focus { border-color: #6366f1; }
+.eye { position: absolute; right: .8rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #475569; user-select: none; }
+.eye:hover { color: #94a3b8; }
+.btn {
+  width: 100%; padding: .85rem; border: none; border-radius: 9px;
+  font-size: .95rem; font-weight: 700; cursor: pointer;
+  transition: background .18s, transform .1s; margin-top: .25rem;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.btn-primary { background: #6366f1; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #4f46e5; }
+.btn-ghost { background: #334155; color: #94a3b8; margin-top: .6rem; }
+.btn-ghost:hover:not(:disabled) { background: #475569; color: #e2e8f0; }
+.err { color: #f87171; font-size: .83rem; margin-top: .65rem; min-height: 1.1em; text-align: left; }
+.hint-box {
+  margin-top: 1.25rem; padding: .9rem 1rem;
+  background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+  text-align: left; font-size: .8rem; color: #64748b; line-height: 1.6;
+}
+.hint-box code { color: #a5b4fc; background: #1e293b; padding: .1em .35em; border-radius: 4px; }
+
+/* ── Main tool ── */
+.topbar {
+  background: #1e293b; border-bottom: 1px solid #334155;
+  padding: .75rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.topbar-label { font-size: .75rem; color: #64748b; font-weight: 600; white-space: nowrap; }
+.topbar input {
+  flex: 1; min-width: 160px; max-width: 320px;
+  padding: .45rem .8rem; background: #0f172a; border: 1px solid #334155;
+  border-radius: 7px; color: #e2e8f0; font-size: .85rem; outline: none; transition: border-color .2s;
+}
+.topbar input:focus { border-color: #6366f1; }
+.topbar-hint { font-size: .75rem; color: #475569; margin-left: auto; }
+.topbar-hint a { color: #6366f1; text-decoration: none; }
+.topbar-hint a:hover { text-decoration: underline; }
+
+.main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+.header { text-align: center; margin-bottom: 1.75rem; }
+.header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.025em; margin-bottom: .3rem; }
+.header p { color: #64748b; font-size: .9rem; }
+
+.editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.col-label {
+  font-size: .75rem; color: #64748b; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: .45rem; display: flex; align-items: center; justify-content: space-between;
+}
+textarea#mdInput {
+  width: 100%; height: 400px; padding: 1rem;
+  background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+  color: #e2e8f0; font-size: .875rem; font-family: 'SF Mono','Fira Code',monospace;
+  resize: none; outline: none; line-height: 1.7; transition: border-color .2s;
+}
+textarea#mdInput:focus { border-color: #6366f1; }
+#preview {
+  height: 400px; padding: 1.25rem;
+  background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+  overflow-y: auto; font-size: .9rem; line-height: 1.75;
+}
+
+.bottom-panel { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; }
+.pw-row { display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+.pw-field { flex: 1; min-width: 160px; }
+.pw-field label { display: block; font-size: .75rem; color: #64748b; font-weight: 600; margin-bottom: .4rem; }
+.pw-field .inp-wrap input {
+  padding: .72rem 2.4rem .72rem .9rem;
+  background: #0f172a; font-size: .9rem;
+}
+.btn-row { display: flex; gap: .75rem; flex-wrap: wrap; }
+.btn-main {
+  padding: .75rem 1.5rem; border: none; border-radius: 8px;
+  font-size: .9rem; font-weight: 700; cursor: pointer;
+  transition: background .18s, transform .1s, opacity .2s;
+}
+.btn-main:active { transform: scale(.97); }
+.btn-main:disabled { opacity: .45; cursor: default; transform: none; }
+.btn-main.primary { background: #6366f1; color: #fff; flex: 1; }
+.btn-main.primary:hover:not(:disabled) { background: #4f46e5; }
+.btn-main.secondary { background: #334155; color: #94a3b8; }
+.btn-main.secondary:hover:not(:disabled) { background: #475569; color: #e2e8f0; }
+
+.result-box { margin-top: 1rem; display: none; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; }
+.result-box.show { display: block; }
+.result-label { font-size: .75rem; color: #64748b; font-weight: 600; margin-bottom: .5rem; }
+.link-row { display: flex; gap: .5rem; align-items: center; }
+.link-text { flex: 1; padding: .6rem .9rem; background: #1e293b; border: 1px solid #334155; border-radius: 7px; color: #a5b4fc; font-size: .8rem; font-family: monospace; word-break: break-all; }
+.copy-btn { padding: .6rem 1rem; background: #6366f1; color: #fff; border: none; border-radius: 7px; font-size: .8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .18s; }
+.copy-btn:hover { background: #4f46e5; }
+.copy-btn.copied { background: #16a34a; }
+
+#status { margin-top: .75rem; font-size: .85rem; min-height: 1.4em; text-align: center; }
+
+.info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-top: 1.5rem; }
+.info-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 1rem; text-align: center; }
+.info-card .ico { font-size: 1.4rem; margin-bottom: .3rem; }
+.info-card .t { font-size: .78rem; font-weight: 600; margin-bottom: .2rem; }
+.info-card .d { font-size: .72rem; color: #64748b; }
+
+/* ── Markdown preview ── */
+#preview h1,#preview h2,#preview h3 { margin: 1.2rem 0 .5rem; font-weight: 700; line-height: 1.3; }
+#preview h1 { font-size: 1.4rem; border-bottom: 1px solid #334155; padding-bottom: .35rem; }
+#preview h2 { font-size: 1.15rem; } #preview h3 { font-size: .95rem; }
+#preview p { margin-bottom: .75rem; color: #cbd5e1; line-height: 1.7; }
+#preview a { color: #818cf8; }
+#preview ul,#preview ol { padding-left: 1.5rem; margin-bottom: .75rem; color: #cbd5e1; }
+#preview li { margin-bottom: .2rem; }
+#preview blockquote { border-left: 3px solid #6366f1; padding: .4rem .9rem; background: #0f172a; border-radius: 0 6px 6px 0; margin-bottom: .75rem; color: #94a3b8; }
+#preview code { background: #0f172a; padding: .12em .4em; border-radius: 4px; font-size: .8em; color: #a5b4fc; font-family: monospace; }
+#preview pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: .75rem; }
+#preview pre code { background: none; padding: 0; color: #e2e8f0; font-size: .8rem; }
+#preview table { width: 100%; border-collapse: collapse; margin-bottom: .75rem; font-size: .82rem; }
+#preview th,#preview td { border: 1px solid #334155; padding: .4rem .75rem; }
+#preview th { background: #0f172a; font-weight: 600; }
+#preview hr { border: none; border-top: 1px solid #334155; margin: 1.25rem 0; }
+#preview strong { color: #e2e8f0; } #preview em { color: #94a3b8; }
+#preview .placeholder { color: #475569; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ── Setup screen ── -->
+<div id="screen-setup" class="gate" style="display:none;">
+  <div class="card">
+    <div class="card-icon">⚙️</div>
+    <h1>首次設定</h1>
+    <p>輸入你的 GitHub Token 和一組解鎖密碼。<br>加密後的 Token 會存在這個瀏覽器裡。</p>
+    <div class="field">
+      <label>GitHub Token</label>
+      <div class="inp-wrap">
+        <input type="password" id="setup-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+        <span class="eye" onclick="toggleSetup('setup-token')">👁</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>解鎖密碼（以後開啟工具要輸入這個）</label>
+      <div class="inp-wrap">
+        <input type="password" id="setup-pw1" placeholder="設定密碼..." />
+        <span class="eye" onclick="toggleSetup('setup-pw1')">👁</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>確認密碼</label>
+      <div class="inp-wrap">
+        <input type="password" id="setup-pw2" placeholder="再次輸入..." />
+        <span class="eye" onclick="toggleSetup('setup-pw2')">👁</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="setup-btn" onclick="doSetup()">儲存設定</button>
+    <div class="err" id="setup-err"></div>
+    <div class="hint-box">
+      Token 只需要 <code>gist</code> 權限。<br>
+      GitHub → Settings → Developer settings → Personal access tokens
+    </div>
+  </div>
+</div>
+
+<!-- ── Lock screen (shown when token is embedded) ── -->
+<div id="screen-lock" class="gate" style="display:none;">
+  <div class="card">
+    <div class="card-icon">🔐</div>
+    <h1>Markdown 加密工具</h1>
+    <p>請輸入密碼以解鎖工具</p>
+    <div class="inp-wrap">
+      <input type="password" id="lock-pw" placeholder="輸入密碼..." autocomplete="current-password" />
+      <span class="eye" onclick="toggleSetup('lock-pw')">👁</span>
+    </div>
+    <button class="btn btn-primary" id="lock-btn" onclick="doUnlock()" style="margin-top:.875rem;">解鎖</button>
+    <div class="err" id="lock-err"></div>
+  </div>
+</div>
+
+<!-- ── Main tool (hidden until unlocked) ── -->
+<div id="screen-main" style="display:none;">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-label" style="color:#4ade80;">🔓 已解鎖</span>
+    <span class="topbar-label" style="margin-left:.5rem;">🌐 Viewer 網址</span>
+    <input type="text" id="viewerUrl" placeholder="https://你的名字.github.io/md-viewer/" />
+    <span class="topbar-hint">
+      還沒設定？<a href="#" onclick="showSetupModal();return false;">查看說明</a>
+      &nbsp;|&nbsp;
+      <a href="#" onclick="doLock();return false;">🔒 鎖定</a>
+      &nbsp;|&nbsp;
+      <a href="#" onclick="doReset();return false;" style="color:#f87171;">重設 Token</a>
+    </span>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>🔐 Markdown 加密工具</h1>
+      <p>輸入內容與密碼，加密後上傳 Gist，生成可分享的短網址</p>
+    </div>
+
+    <div class="editor-grid">
+      <div>
+        <div class="col-label">
+          ✏️ Markdown 編輯
+          <button onclick="loadSample()" style="background:none;border:1px solid #334155;color:#64748b;padding:.2rem .65rem;border-radius:6px;font-size:.72rem;cursor:pointer;">載入範例</button>
+        </div>
+        <textarea id="mdInput" placeholder="# 標題&#10;&#10;在這裡輸入你的 Markdown..."></textarea>
+      </div>
+      <div>
+        <div class="col-label">👁 即時預覽</div>
+        <div id="preview"><span class="placeholder">預覽將在這裡出現...</span></div>
+      </div>
+    </div>
+
+    <div class="bottom-panel">
+      <div class="pw-row">
+        <div class="pw-field">
+          <label>文件密碼</label>
+          <div class="inp-wrap"><input type="password" id="pw1" placeholder="設定密碼（至少 6 字元）" /><span class="eye" onclick="toggle('pw1')">👁</span></div>
+        </div>
+        <div class="pw-field">
+          <label>確認密碼</label>
+          <div class="inp-wrap"><input type="password" id="pw2" placeholder="再次輸入..." /><span class="eye" onclick="toggle('pw2')">👁</span></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-main primary" id="gistBtn" onclick="generateGist()">🔗 加密並上傳 Gist，取得分享連結</button>
+        <button class="btn-main secondary" id="dlBtn" onclick="generateDownload()">⬇️ 下載 HTML</button>
+      </div>
+      <div class="result-box" id="resultBox">
+        <div class="result-label">✅ 分享連結（複製後傳給對方）</div>
+        <div class="link-row">
+          <div class="link-text" id="resultLink"></div>
+          <button class="copy-btn" id="copyBtn" onclick="copyLink()">複製</button>
+        </div>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card"><div class="ico">🔒</div><div class="t">AES-256-GCM</div><div class="d">業界標準加密，瀏覽器本地執行</div></div>
+      <div class="info-card"><div class="ico">🧂</div><div class="t">PBKDF2 金鑰衍生</div><div class="d">12萬次迭代，防暴力破解</div></div>
+      <div class="info-card"><div class="ico">📦</div><div class="t">Gist 只存亂碼</div><div class="d">沒密碼看不出任何內容</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Setup guide modal -->
+<div id="setupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2rem;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;">
+    <h2 style="font-size:1.2rem;margin-bottom:1.25rem;">🛠 GitHub Pages 設定步驟</h2>
+    <div style="font-size:.875rem;line-height:1.8;color:#cbd5e1;">
+      <p style="margin-bottom:1rem;"><strong style="color:#e2e8f0;">Step 1</strong> — 新建一個 GitHub repo，名稱例如 <code style="background:#0f172a;padding:.1em .35em;border-radius:4px;color:#a5b4fc;">md-viewer</code></p>
+      <p style="margin-bottom:1rem;"><strong style="color:#e2e8f0;">Step 2</strong> — 上傳 <code style="background:#0f172a;padding:.1em .35em;border-radius:4px;color:#a5b4fc;">viewer.html</code>，改名為 <code style="background:#0f172a;padding:.1em .35em;border-radius:4px;color:#a5b4fc;">index.html</code></p>
+      <p style="margin-bottom:1rem;"><strong style="color:#e2e8f0;">Step 3</strong> — Settings → Pages → Branch: main → Save</p>
+      <p style="margin-bottom:1rem;"><strong style="color:#e2e8f0;">Step 4</strong> — 幾分鐘後拿到網址，填入上方 Viewer 網址欄位</p>
+    </div>
+    <button onclick="closeSetupModal()" style="margin-top:1.5rem;width:100%;padding:.75rem;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;">關閉</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script>
+// ─── Crypto ───────────────────────────────────────────────────────────────────
+async function deriveKey(password, salt, usage) {
+  const raw = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' },
+    raw, { name: 'AES-GCM', length: 256 }, false, [usage]
+  );
+}
+async function encrypt(text, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt, 'encrypt');
+  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(text));
+  const out  = new Uint8Array(16 + 12 + ct.byteLength);
+  out.set(salt, 0); out.set(iv, 16); out.set(new Uint8Array(ct), 28);
+  return btoa(String.fromCharCode(...out));
+}
+async function decrypt(b64, password) {
+  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const key = await deriveKey(password, buf.slice(0, 16), 'decrypt');
+  const pt  = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(16, 28) }, key, buf.slice(28));
+  return new TextDecoder().decode(pt);
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let unlockedToken = null;
+
+function show(id) {
+  ['screen-setup','screen-lock','screen-main'].forEach(s =>
+    document.getElementById(s).style.display = s === id ? (id === 'screen-main' ? 'block' : 'flex') : 'none'
+  );
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const stored = localStorage.getItem('enc_token');
+  if (!stored) {
+    show('screen-setup');
+  } else {
+    show('screen-lock');
+    document.getElementById('lock-pw').focus();
+  }
+  // Restore viewer URL
+  document.getElementById('viewerUrl').value = localStorage.getItem('viewer_url') || '';
+  document.getElementById('viewerUrl').addEventListener('input', () =>
+    localStorage.setItem('viewer_url', document.getElementById('viewerUrl').value)
+  );
+  // Markdown preview
+  document.getElementById('mdInput').addEventListener('input', updatePreview);
+  // Enter key on lock screen
+  document.getElementById('lock-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(); });
+});
+
+// ─── Setup flow ───────────────────────────────────────────────────────────────
+function toggleSetup(id) { const e = document.getElementById(id); e.type = e.type === 'password' ? 'text' : 'password'; }
+
+async function doSetup() {
+  const token = document.getElementById('setup-token').value.trim();
+  const pw1   = document.getElementById('setup-pw1').value;
+  const pw2   = document.getElementById('setup-pw2').value;
+  const err   = document.getElementById('setup-err');
+  const btn   = document.getElementById('setup-btn');
+  err.textContent = '';
+
+  if (!token)           { err.textContent = '請輸入 GitHub Token'; return; }
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_'))
+                        { err.textContent = 'Token 格式看起來不對，請確認'; return; }
+  if (!pw1)             { err.textContent = '請輸入解鎖密碼'; return; }
+  if (pw1.length < 6)   { err.textContent = '密碼至少 6 個字元'; return; }
+  if (pw1 !== pw2)      { err.textContent = '兩次密碼不一致'; return; }
+
+  btn.disabled = true; btn.textContent = '儲存中...';
+  try {
+    const encToken = await encrypt(token, pw1);
+    localStorage.setItem('enc_token', encToken);
+    show('screen-lock');
+    document.getElementById('lock-pw').focus();
+  } catch(e) {
+    err.style.color = '#f87171';
+    err.textContent = '失敗：' + e.message;
+    btn.disabled = false; btn.textContent = '儲存設定';
+  }
+}
+
+// ─── Lock / Unlock ────────────────────────────────────────────────────────────
+async function doUnlock() {
+  const pw  = document.getElementById('lock-pw').value;
+  const err = document.getElementById('lock-err');
+  const btn = document.getElementById('lock-btn');
+  err.textContent = '';
+  if (!pw) { err.textContent = '請輸入密碼'; return; }
+  btn.disabled = true; btn.textContent = '解鎖中...';
+  try {
+    const stored = localStorage.getItem('enc_token');
+    unlockedToken = await decrypt(stored, pw);
+    show('screen-main');
+  } catch {
+    err.textContent = '密碼錯誤，請再試一次';
+    btn.disabled = false; btn.textContent = '解鎖';
+    document.getElementById('lock-pw').select();
+  }
+}
+
+function doLock() {
+  unlockedToken = null;
+  document.getElementById('lock-pw').value = '';
+  document.getElementById('lock-err').textContent = '';
+  show('screen-lock');
+  document.getElementById('lock-pw').focus();
+}
+
+function doReset() {
+  if (!confirm('確定要清除已儲存的 Token？需要重新設定。')) return;
+  localStorage.removeItem('enc_token');
+  unlockedToken = null;
+  document.getElementById('setup-err').textContent = '';
+  document.getElementById('setup-err').style.color = '#f87171';
+  show('screen-setup');
+}
+
+// ─── Preview ─────────────────────────────────────────────────────────────────
+function updatePreview() {
+  const md = document.getElementById('mdInput').value;
+  const el = document.getElementById('preview');
+  if (md.trim() && window.marked) {
+    el.innerHTML = marked.parse(md);
+  } else {
+    el.innerHTML = '<span class="placeholder">預覽將在這裡出現...</span>';
+  }
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function toggle(id) { const e = document.getElementById(id); e.type = e.type === 'password' ? 'text' : 'password'; }
+function setStatus(msg, color) { const e = document.getElementById('status'); e.textContent = msg; e.style.color = color || '#94a3b8'; }
+
+function validate() {
+  const md  = document.getElementById('mdInput').value.trim();
+  const pw1 = document.getElementById('pw1').value;
+  const pw2 = document.getElementById('pw2').value;
+  if (!md)           { setStatus('❌ 請輸入 Markdown 內容', '#f87171'); return null; }
+  if (!pw1)          { setStatus('❌ 請輸入文件密碼', '#f87171'); return null; }
+  if (pw1.length < 6){ setStatus('❌ 文件密碼至少 6 個字元', '#f87171'); return null; }
+  if (pw1 !== pw2)   { setStatus('❌ 兩次密碼不一致', '#f87171'); return null; }
+  return { md, pw: pw1 };
+}
+
+// ─── Gist upload ─────────────────────────────────────────────────────────────
+async function generateGist() {
+  const v = validate(); if (!v) return;
+  const viewerUrl = document.getElementById('viewerUrl').value.trim().replace(/\/?$/, '/');
+  if (!viewerUrl || viewerUrl === '/') { setStatus('❌ 請填入 Viewer 網址', '#f87171'); return; }
+
+  const btn = document.getElementById('gistBtn');
+  btn.disabled = true; btn.textContent = '🔄 加密並上傳中...';
+  setStatus('', ''); document.getElementById('resultBox').classList.remove('show');
+
+  try {
+    const encrypted = await encrypt(v.md, v.pw);
+    const res = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: { 'Authorization': `token ${unlockedToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: 'Encrypted Markdown document',
+        public: false,
+        files: { 'encrypted.txt': { content: encrypted } }
+      })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.message || `HTTP ${res.status}`); }
+    const data = await res.json();
+    const shareUrl = `${viewerUrl}?gist=${data.id}`;
+    document.getElementById('resultLink').textContent = shareUrl;
+    document.getElementById('resultBox').classList.add('show');
+    setStatus('✅ 上傳成功！將連結傳給對方，並另外告知文件密碼。', '#4ade80');
+  } catch(e) {
+    setStatus('❌ 上傳失敗：' + e.message, '#f87171');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔗 加密並上傳 Gist，取得分享連結';
+  }
+}
+
+// ─── Download fallback ────────────────────────────────────────────────────────
+async function generateDownload() {
+  const v = validate(); if (!v) return;
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = true; btn.textContent = '🔄 加密中...';
+  try {
+    const encrypted = await encrypt(v.md, v.pw);
+    const html = buildViewerHtml(encrypted);
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'encrypted-doc.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    setStatus('✅ 已下載 encrypted-doc.html，傳給對方並告知文件密碼。', '#4ade80');
+  } catch(e) {
+    setStatus('❌ 失敗：' + e.message, '#f87171');
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇️ 下載 HTML';
+  }
+}
+
+function buildViewerHtml(encryptedData) {
+  return `<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>🔒 加密文件</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#1e293b}::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}#lock{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2.5rem;max-width:400px;width:100%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.5)}.ico{font-size:3.5rem;margin-bottom:1.25rem;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}.card h1{font-size:1.5rem;font-weight:700;margin-bottom:.375rem}.card p{color:#64748b;font-size:.9rem;margin-bottom:2rem}.iw{position:relative;margin-bottom:.875rem}.iw input{width:100%;padding:.8rem 2.75rem .8rem 1rem;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#e2e8f0;font-size:1rem;outline:none;transition:border-color .2s}.iw input:focus{border-color:#6366f1}.eye{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#475569;font-size:1rem;user-select:none}button{width:100%;padding:.85rem;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:background .2s}button:hover{background:#4f46e5}button:disabled{background:#334155;color:#475569;cursor:default}.err{color:#f87171;font-size:.85rem;margin-top:.75rem;min-height:1.2em}#cw{display:none;padding:3rem 1.5rem;max-width:860px;margin:0 auto}.bar{display:flex;align-items:center;gap:.75rem;margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid #1e293b}.hint{font-size:.8rem;color:#4ade80;background:rgba(74,222,128,.1);padding:.25rem .75rem;border-radius:999px;border:1px solid rgba(74,222,128,.2)}.md{line-height:1.75;font-size:1rem}.md h1,.md h2,.md h3{margin:2rem 0 .75rem;font-weight:700;line-height:1.3}.md h1{font-size:2rem;border-bottom:1px solid #1e293b;padding-bottom:.5rem}.md h2{font-size:1.5rem}.md h3{font-size:1.25rem}.md p{margin-bottom:1rem}.md a{color:#818cf8}.md ul,.md ol{padding-left:1.75rem;margin-bottom:1rem}.md li{margin-bottom:.25rem}.md blockquote{border-left:3px solid #6366f1;padding:.5rem 1rem;background:#1e293b;border-radius:0 8px 8px 0;margin-bottom:1rem;color:#94a3b8}.md code{background:#1e293b;padding:.15em .45em;border-radius:5px;font-family:monospace;font-size:.875em;color:#a5b4fc}.md pre{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:1.25rem;overflow-x:auto;margin-bottom:1rem}.md pre code{background:none;padding:0;font-size:.875rem;color:#e2e8f0}.md table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:.9rem}.md th,.md td{border:1px solid #334155;padding:.6rem 1rem;text-align:left}.md th{background:#1e293b;font-weight:600}.md tr:nth-child(even){background:rgba(30,41,59,.5)}.md hr{border:none;border-top:1px solid #1e293b;margin:2rem 0}</style>
+</head><body>
+<div id="lock"><div class="card">
+  <div class="ico">🔒</div><h1>加密文件</h1><p>請輸入密碼以查看內容</p>
+  <div class="iw"><input type="password" id="pw" placeholder="輸入密碼..." /><span class="eye" onclick="tp()">👁</span></div>
+  <button id="btn" onclick="go()">解鎖查看</button>
+  <div class="err" id="err"></div>
+</div></div>
+<div id="cw"><div class="bar"><span style="font-size:1.25rem">🔓</span><span style="font-weight:600;font-size:1.1rem">文件內容</span><span class="hint">已解密</span></div><div class="md" id="mc"></div></div>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"><\/script>
+<script>
+const DATA="${encryptedData}";
+async function dk(p,s){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:120000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']);}
+function tp(){const e=document.getElementById('pw');e.type=e.type==='password'?'text':'password';}
+async function go(){
+  const pw=document.getElementById('pw').value,err=document.getElementById('err'),btn=document.getElementById('btn');
+  err.textContent='';if(!pw){err.textContent='請輸入密碼';return;}
+  btn.disabled=true;btn.textContent='解密中...';
+  try{
+    const b=Uint8Array.from(atob(DATA),c=>c.charCodeAt(0));
+    const k=await dk(pw,b.slice(0,16));
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(16,28)},k,b.slice(28));
+    const md=new TextDecoder().decode(pt);
+    document.getElementById('lock').style.display='none';
+    const cw=document.getElementById('cw');cw.style.display='block';
+    document.getElementById('mc').innerHTML=typeof marked!=='undefined'?marked.parse(md):md.replace(/\\n/g,'<br>');
+  }catch(e){err.textContent='密碼錯誤，請再試一次';btn.disabled=false;btn.textContent='解鎖查看';document.getElementById('pw').select();}
+}
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+document.getElementById('pw').focus();
+<\/script></body></html>`;
+}
+
+// ─── Copy ────────────────────────────────────────────────────────────────────
+function copyLink() {
+  navigator.clipboard.writeText(document.getElementById('resultLink').textContent).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '已複製！'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── Sample ──────────────────────────────────────────────────────────────────
+function loadSample() {
+  document.getElementById('mdInput').value = `# 歡迎使用 Markdown 加密工具\n\n這是一份**加密保護**的文件示範。\n\n## 功能特色\n\n- 🔒 AES-256-GCM 加密\n- 📦 Gist 儲存，URL 長度無限制\n- 🌐 純前端解密\n\n> 只有知道密碼的人才能看到內容。`;
+  updatePreview();
+}
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+function showSetupModal() { document.getElementById('setupModal').style.display = 'flex'; }
+function closeSetupModal() { document.getElementById('setupModal').style.display = 'none'; }
+document.getElementById('setupModal').addEventListener('click', function(e) { if (e.target === this) closeSetupModal(); });
+</script>
+</body>
+</html>
