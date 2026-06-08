@@ -15,6 +15,27 @@ MdLock 是一組純前端工具，由兩個獨立 repo 組成：
 
 每個 repo 各一個 `index.html`，單檔架構，無框架，無建構工具，無依賴。
 
+### 資料夾結構
+
+```
+mdlock-encryptor/
+├── index.html
+├── favicon.png
+├── apple-touch-icon-{180,152,120}.png
+├── assets/
+│   └── og-thumbnail.png        ← OG 社群縮圖（1200×630）
+└── tools/
+    ├── icon-generator.html     ← App icon 產生器（4 主題 × 2 版本）
+    └── og-generator.html       ← OG thumbnail 產生器
+
+mdlock-viewer/
+├── index.html
+├── favicon.png
+├── apple-touch-icon-{180,152,120}.png
+└── assets/
+    └── og-thumbnail.png
+```
+
 ---
 
 ## 命名規則
@@ -87,3 +108,5 @@ MdLock 是一組純前端工具，由兩個獨立 repo 組成：
 - Rule 4：表單驗證與 CRUD 回饋
 - Rule 5：nav overflow 解法（pill 移出 nav）
 - Rule 6：品牌名稱大寫規則
+- Rule 7：iOS Safari 自動縮放防護（`font-size: 16px !important`）
+- Rule 8：PWA 瀏海 safe area（`viewport-fit=cover` + `black-translucent` + `env(safe-area-inset-top)`）
